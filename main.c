@@ -326,7 +326,7 @@ void main(void) {
                     tick_2ms = 0;
                     e_mj = 0;
                     cap_mc = 0;
-                    save_eeprom();
+                    toggle_orient(); // turn OLED back
                     break;
                 case (BTN_DOWN):
                     toggle_orient();
