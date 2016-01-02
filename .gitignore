@@ -1,0 +1,13 @@
+*.asm
+*.lst
+*.rel
+*.rst
+*.sym
+*.lk
+*.map
+*.swp
+*.bin
+*.sh
+
+.DS_Store
+
