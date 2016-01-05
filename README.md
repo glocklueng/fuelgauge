@@ -1,5 +1,7 @@
 # Hacking OLED USB voltage meter ang fuel gauge
 
+![](./hardware/IMG_3884.JPG)
+
 Hacked into a China made $5 USB OLED USB fuel gauge
 
 ## Requirements
