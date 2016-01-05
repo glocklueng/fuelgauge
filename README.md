@@ -2,7 +2,7 @@
 
 ![](./hardware/IMG_3884.JPG)
 
-Hacked into a China made $5 USB OLED USB fuel gauge
+Hacked into a China made $5 USB OLED USB fuel gauge. By averaging ADC readdings, resolution up to 1mV and 1mA. Accuracy is 5%~10% due to poor voltage reference and RC clock.
 
 ## Requirements
 
@@ -76,3 +76,4 @@ Notes:
 * SPI is not connected ***correctly***, so can only be emulated by using GPIO
 * CS is not connected, tied to low.
 * On chip charge pump is used
+* be careful with SWIM port, better leave 5V pin unconnected and use USB supply, one short-circuit will blow that tiny diode.
