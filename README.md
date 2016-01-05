@@ -6,7 +6,7 @@ Hacked into a China made $5 USB OLED USB fuel gauge
 
 ## Requirements
 
-* SDCC 3.4 tested, other versions should work. STM8 support is somehow buggy.
+* SDCC 3.4 and 3.5.0 tested, other versions should work. STM8 support is somehow buggy.
 * ST-Link v1 or v2. v2 is tested, works well in Linux, slightly buggy in OS X.
 * [https://github.com/vdudouyt/stm8flash](STM8Flash) 
 * GNU make 3.81 and 4.0 tested, BSD might work
@@ -24,9 +24,9 @@ Schematics TBD
 * STM8003F3P6 MCU, TSSOP20
 * 0.91" OLED, 15-pin FPC, 128x32, controller SSD1306
 * 25mOhm current sensing resistor
-* 220uF/4V Tantalum capacitor at 3V rail
+* 220uF/4V Tantalum capacitor at 3V3 rail
 * LM358 as current sensing amplifier
-* some SOT23-3 3.3V LDO
+* some SOT23-3 3.3V LDO, like XC6206P331MR(Marking 662*) or MCP1754ST-3302E/CB(Marking JDNN)
 * 1N4148 Diode at VUSB rail
 
 ### MCU Pinout
@@ -34,11 +34,12 @@ Schematics TBD
 |pin#| func | GPIO|net or signal path |
 |---|---|----|---|
 | 1 | | | |
-| 2 | likely some control | PD5/UART TX |R7-Q3-R9-D6, not mounted|
+| 2 | likely some control, discharge/load? | PD5/UART TX |R7-Q3-R9-D6, not mounted|
 | 3 | ? |PD6/UART RX| C3, pin8 |
 | 4 | reset || reset |
 | ... |||
-| 10| |PA3| R8 (NP)|
+| 10| LED? |PA3| R8-D5 (NP)|
+| 12| Current sensing bias|PC3| R3 |
 | 14| OLED reset? || OLED:9|
 | 15| OLED | CLK? | OLED:10|
 | 16| OLED | MOSI? | OLED:11 |
