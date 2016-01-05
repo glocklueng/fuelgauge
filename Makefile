@@ -4,8 +4,18 @@ SDCC = sdcc
 #SDLD = sdld
 SDLD = sdcc
 LDFLAGS = -lstm8 -mstm8 --out-fmt-ihx --code-size 0x2000 --iram-size 0x400 -V -V --verbose
-#CFLAGS = -lstm8 -mstm8 --opt-code-speed --std-c99
-CFLAGS = -lstm8 -mstm8 --opt-code-size --std-c99
+CFLAGS = -lstm8 -mstm8 --opt-code-speed --std-c99
+#CFLAGS = -lstm8 -mstm8 --opt-code-size --std-c99 
+# vim: noet:ts=4:sw=4:
+
+SDCC = sdcc
+#SDLD = sdld
+SDLD = sdcc
+LDFLAGS = -lstm8 -mstm8 --out-fmt-ihx --code-size 0x2000 --iram-size 0x400 -V -V --verbose
+CFLAGS = -lstm8 -mstm8 --opt-code-speed --std-c99
+#CFLAGS = -lstm8 -mstm8 --opt-code-size --std-c99 
+# --peep-file peepstm8
+# --fverbose-asm
 OBJECTS = font_cp437_5x7.rel oled1306spi.rel util.rel timing.rel main.rel 
 TARGET = fuelgauge.ihx
 
@@ -41,3 +51,4 @@ $(TARGET): $(OBJECTS)
 
 %.rel: %.c
 	$(SDCC) -c $(CFLAGS) $^
+

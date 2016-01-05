@@ -79,3 +79,40 @@ void sprint_u32_fxp(char *s, uint32_t d, int8_t l, int8_t f, bool neg) {
   //  s[l] = 0;
 }
 
+#if 0
+//uint8_t 
+void divmod_u16_u8(uint16_t *a_q, uint8_t *b_r){
+    *a_q = *a_q - 1;
+    *b_r = *b_r - 1;
+/*
+    __asm
+    //ld x, *a_q
+    //ld a, *b_r
+    pushw x
+    ldw x, (5, sp)
+    ld  a, (7, sp)
+    div x, a
+    ldw (5, sp), x
+    ld  (7, sp), a
+    popw x
+    __endasm;
+*/
+}
+
+void divmod_u8_u8(uint8_t *a_q, uint8_t *b_r){
+    __asm;
+    ldw x, (3, sp)
+    pushw x
+    ld a, (x)
+    clrw x
+    ld xl, a
+    ldw y, (7, sp)
+    ld a, (y)
+    div x, a
+    ld (y), a
+    popw y
+    ld a, xl
+    ld  (y), a
+    __endasm;
+}
+#endif

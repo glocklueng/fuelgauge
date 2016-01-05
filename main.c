@@ -27,6 +27,11 @@
 #define BUZZ_PORT PORTD
 #define BUZZ_MSK (1<<5)
 
+// controllable pull-up 1MegOhm for sensing amplifier
+// for better near zero current resolution
+#define PULLUP_PORT PORTC
+#define PULLUP_MSK (1<<3)
+
 // precision:
 // LDO (as voltage reference) 2%
 // resistors 1~5%
@@ -39,10 +44,14 @@
 #define K_VOLT 3625UL
 #define B_VOLT 41
 
+// sensing amplifier 18k/1k, gain=19
+// input bias 3.3V * 1k/ 1001k = 3.3mV
+// calculated B is -58
 #define K_AMP 1952UL 
-#define B_AMP 26
+#define B_AMP -116
 
 // oled line buffer
+static
 char buf_line[32];
 
 // system settings
@@ -64,9 +73,15 @@ uint8_t settings[4];
 // or Rectangle window, 13 gives 6-bit more resolution and lower noise
 // 13 -> 4 samples/sec
 #define AIN_SMOOTH 13
+// under voltage threashold 3V ~216, 3.6V ~260
+// when VUSB drops slowly, VCC will also drop, readings will never 
+// drop below ~250
+#define AIN_UVP_TH 260
+
 uint32_t buf_adc[2];
 
-// when input voltage drops below ~3V, save data to EEPROM
+// when input voltage drops below threadhold, save data to EEPROM, and 
+// wait for VUSB to recover
 bool low_voltage_lockout = false;
 
 // readings
@@ -96,18 +111,16 @@ uint8_t poll_adc(void){
     static uint16_t count = 0;
     uint8_t ch;
     uint8_t i;
-    uint8_t cr11;
     uint16_t t;
     uint8_t r = 0;
     
-    cr11 = ADC1->CR1 | 0x01;   // ADC start command
     for (i = 0; i <= AIN_CH_H - AIN_CH_L; i++){
         ch = i + AIN_CH_L;
         ADC1->CSR = 0x00 | ch; // clear EOC and set channel
-        t = ADC1->CSR;
-        ADC1->CR1 = cr11; // start conversion
+        
+        ADC1->CR1 |= 0x01; // start conversion
         delayus(2);
-        ADC1->CR1 = cr11; // start again to reduce noise
+        ADC1->CR1 |= 0x01; // start conversion
 #ifdef USE_IIR
         buf_adc[i] -= buf_adc[i] >> AIN_SMOOTH; // for IIR
 #else
@@ -117,14 +130,11 @@ uint8_t poll_adc(void){
 #endif
         delayus(4);  // or wait for EOC
 
-        // compiler SDCC 3.4 still buggy for STM8
         t = ADC1->DR.w;
         buf_adc[i] += t;
 
-        // under voltage 3V ~216
         // need to act fast without delay or filter
-        if((0 == i) && (t < 216) && (!low_voltage_lockout)){
-            low_voltage_lockout = true;
+        if((0 == i) && (t < AIN_UVP_TH) && (!low_voltage_lockout)){
             oled_off(); // save poweer for EEPROM programming
             oled_printline(2, "UVP saving  EEPROM   ");
             if(save_eeprom()){
@@ -134,6 +144,7 @@ uint8_t poll_adc(void){
                 init_oled();
                 oled_printline(3, "Finished   ");
             }
+            low_voltage_lockout = true;
         }
     }
     count++;
@@ -157,6 +168,11 @@ void init(){
         
     BUZZ_PORT->CR1 |= BUZZ_MSK;
     BUZZ_PORT->DDR |= BUZZ_MSK;
+    
+    // pull up
+    PULLUP_PORT->CR1 |= PULLUP_MSK;
+    PULLUP_PORT->DDR |= PULLUP_MSK;
+    PULLUP_PORT->ODR |= PULLUP_MSK;
    
     CFG_GCR = 0x01; // use SWIM pin as IO
     BTN_PORT->DDR &= ~BTN_PIN_MSK; // input
@@ -169,7 +185,7 @@ void init(){
 
 void wait_for_eop(){
     while(!(FLASH->IAPSR & 0x04)){ // EOP
-        delayus(100);
+         delayus(1); // to reset pipeline?
     }
 }
 
@@ -226,7 +242,7 @@ void toggle_orient(){
 
 //static
 void main(void) {
-    // should be static, but buggy compiler takes more code for static
+    // should be static, but compiler generates more code for static
     uint8_t result = 0;  // temp result
     uint8_t t_det = 0;   // tick second change detecter
     uint32_t reg_tick;   // save tick second, atomic
@@ -234,11 +250,13 @@ void main(void) {
     uint32_t clock_h;
     uint8_t clock_m;
     uint8_t clock_s;
+    uint8_t t8;
 
     init();
     init_tick();  // before using delayms
     
     rim();
+    
     init_oled();
     oled_clr();
     init_adc();
@@ -266,7 +284,8 @@ void main(void) {
                 low_voltage_lockout = false;
             }
 
-            if(amp_ma <= B_AMP){  // half LSB
+            // smaller than 0 or resolution
+            if((amp_ma <= 10) || (amp_ma >= 0x8000)){  
                 amp_ma = 0;
             }
             pwr_mw = ((uint32_t)volt_mv) * amp_ma / 1000;
@@ -300,8 +319,17 @@ void main(void) {
             sprint_u32_fxp(&buf_line[9], clock_h, 6, 0, false); // hour
             buf_line[16] = '0' + clock_m / 10; // minute
             buf_line[17] = '0' + clock_m % 10;
+//             t8 = 10;
+//             divmod_u8_u8(&clock_m, &t8);
+//             buf_line[16] = '0' + clock_m; // second
+//             buf_line[17] = '0' + t8;
+
             buf_line[19] = '0' + clock_s / 10; // second
             buf_line[20] = '0' + clock_s % 10;
+//             t8 = 10;
+//             divmod_u8_u8(&clock_s, &t8);
+//             buf_line[19] = '0' + clock_s; // second
+//             buf_line[20] = '0' + t8;
             oled_printline(1, buf_line);`
            
             if(!low_voltage_lockout){
@@ -326,7 +354,7 @@ void main(void) {
                     tick_2ms = 0;
                     e_mj = 0;
                     cap_mc = 0;
-                    toggle_orient(); // turn OLED back
+                    toggle_orient(); // turn OLED back. save and reload
                     break;
                 case (BTN_DOWN):
                     toggle_orient();

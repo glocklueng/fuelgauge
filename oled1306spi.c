@@ -90,25 +90,15 @@ static const uint8_t SSD1306_INIT[] ={
 void spi_write(uint8_t d){
 #ifdef SOFT_SPI
     uint8_t i;
-    uint8_t tp00; // port ODR cache
-    uint8_t tp10; 
-    uint8_t tp01; 
-    uint8_t tp11; 
-    tp00 = OLED_PORT->ODR & ~((1<<SOFT_SPI_MOSI)|(1<<SOFT_SPI_SCK)); //data 0, clk low
-    tp10 = tp00 | (1<<SOFT_SPI_MOSI); // data 1, clk low
-    tp01 = tp00 | (1<<SOFT_SPI_SCK);  // data 0, clk low
-    tp11 = tp01 | (1<<SOFT_SPI_MOSI); // data 1, clk high
 
     for(i = 0x80; i != 0; i >>=1){
         if(i & d){
-            OLED_PORT->ODR = tp10;
-            OLED_PORT->ODR = tp11;
-            OLED_PORT->ODR = tp10;
+            OLED_PORT->ODR |= (1<<SOFT_SPI_MOSI);
         } else {
-            OLED_PORT->ODR = tp00;
-            OLED_PORT->ODR = tp01;
-            OLED_PORT->ODR = tp00;
+            OLED_PORT->ODR &= ~(1<<SOFT_SPI_MOSI);
         }
+        OLED_PORT->ODR |= (1<<SOFT_SPI_SCK); // sclk pulse
+        OLED_PORT->ODR &= ~(1<<SOFT_SPI_SCK);
     }
 #else
     while(0 == (SPI->SR & SPI_SR_TXE)){

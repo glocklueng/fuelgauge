@@ -22,4 +22,7 @@
 void sprint_u32_fxp(char *s, uint32_t d, int8_t l, int8_t f, bool neg);
 void *memcpy(void *dst,const void *src,size_t acount);
 
+void divmod_u16_u8(uint16_t *a_q, uint8_t *b_r);
+void divmod_u8_u8(uint8_t *a_q, uint8_t *b_r);
+
 #endif

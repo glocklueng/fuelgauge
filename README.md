@@ -55,18 +55,18 @@ Notes:
 
 |Pin|ext component|function|
 |---|---|---|
-|15 |C||
-|14 |C||
+|15 |C| |
+|14 |C| |
 |13 ||IREF|
 |12|MCU:17|MOSI|
 |11|MCU:16|SCK|
-|10|MCU:15||
-|9|MCU:14||
+|10|MCU:15| |
+|9|MCU:14| |
 |8 |GND| CS?|
-|7,5| 3V||
-|6|GND||
-|4,3| Charge Pump||
-|2,1| Charge Pump||
+|7,5| 3V| |
+|6|GND| |
+|4,3| Charge Pump| |
+|2,1| Charge Pump| |
 
 Notes:
 

@@ -1,0 +1,59 @@
+
+// unconditional
+replace restart {
+    ldw     %1, #%2
+    ldw     %1, (%1)
+} by {
+    ; peephole terrance t1, load %1 from (%2) directly
+    ldw     %1, %2
+}
+
+replace restart {
+    ldw     y, #%1
+    ldw     x, (y)
+} by {
+    ; peephole terrance t2, load x from %1 directly (y bypassed)
+    ldw      x, %1
+} if notUsed(y)
+
+replace restart {
+    ldw     x, #%1
+    ldw     y, (x)
+} by {
+    ; peephole terrance t3, load y from %1 directly (x bypassed)
+    ldw      x, %1
+} if notUsed(x)
+
+// compiler error
+//  replace restart {
+//      ldw     %1, #%2
+//      ld      a, (%1)
+//      %3      a, #%4
+//      ld      (%1), a
+//  } by {
+//      ; peephole terrance t4, load %3 %4 with %2 directly (%1 bypassed)
+//      ld      a, %2
+//      %3      a, #%4
+//      ld      %2, a
+//  } if notVolatile(%1), notUsed(%1)
+
+
+// replace restart {
+//     ld      (%1, sp), a
+//     ld      a, (%1, sp)
+// } by {
+//     ld      (%1, sp), a
+// }
+
+
+
+replace restart {
+    ld      %1, #%2
+    ld      %3, (%1)
+} by {
+    ; peephole 1b loaded %3 from %2 directly instead of going through %1.
+    ld      %3, %2
+} if canAssign(%3 %2), notVolatile(%1), notUsed(%1)
+
+
+
